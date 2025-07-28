@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spacebar Clicker</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #0f0;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .helper-button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      background-color: #222;
+      border: 1px solid #0f0;
+      color: #0f0;
+      width: 300px;
+      cursor: pointer;
+    }
+    #settings {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      font-size: 24px;
+    }
+    #settingsMenu {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 10px;
+      background: #222;
+      border: 1px solid #0f0;
+      padding: 10px;
+      width: 200px;
+      color: #0f0;
+    }
+    #settingsMenu button {
+      margin: 5px;
+      padding: 5px;
+      background-color: #111;
+      color: #0f0;
+      border: 1px solid #0f0;
+      cursor: pointer;
+      width: 100%;
+    }
+    .dark-mode {
+      background-color: #111;
+      color: #0f0;
+    }
+    .light-mode {
+      background-color: #f9f9f9;
+      color: #111;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+  <div id="settings">⚙️</div>
+  <div id="settingsMenu">
+    <button onclick="confirmRestart()">🔁 Restart</button>
+    <button onclick="toggleTheme()">🌗 Toggle Dark/Light</button>
+    <button onclick="closeSettings()">❌ Close</button>
+  </div>
+
+  <h1>🚀 Spacebar Clicker</h1>
+  <p>Press <strong>Spacebar</strong> to earn points!</p>
+  <h2>Points: <span id="points">0</span></h2>
+  <div id="helpers"></div>
+
+  <audio id="clickSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+  <audio id="buySound" src="https://www.soundjay.com/button/button-16.mp3"></audio>
+
+  <script>
+    let points = 0;
+    let basePointsPerPress = 1;
+    let helpers = [
+      { name: "Noob Helper", cost: 50, baseCost: 50, multiplier: 2, owned: 0 },
+      { name: "Kid Coder", cost: 250, baseCost: 250, multiplier: 4, owned: 0 },
+      { name: "Script Monkey", cost: 1000, baseCost: 1000, multiplier: 6, owned: 0 },
+      { name: "Stack Overflow Dev", cost: 5000, baseCost: 5000, multiplier: 10, owned: 0 },
+      { name: "Senior Coder", cost: 20000, baseCost: 20000, multiplier: 15, owned: 0 },
+      { name: "AI Assistant", cost: 100000, baseCost: 100000, multiplier: 25, owned: 0 },
+      { name: "Code Wizard", cost: 500000, baseCost: 500000, multiplier: 50, owned: 0 },
+      { name: "Time Traveler Dev", cost: 1e6, baseCost: 1e6, multiplier: 100, owned: 0 },
+      { name: "Alien Engineer", cost: 1e7, baseCost: 1e7, multiplier: 200, owned: 0 },
+      { name: "God of Syntax", cost: 1e8, baseCost: 1e8, multiplier: 500, owned: 0 },
+      { name: "Quantum Hacker", cost: 1e9, baseCost: 1e9, multiplier: 1000, owned: 0 },
+      { name: "Multiverse Coder", cost: 1e10, baseCost: 1e10, multiplier: 2000, owned: 0 },
+      { name: "Source Code Lord", cost: 1e11, baseCost: 1e11, multiplier: 5000, owned: 0 },
+      { name: "Final Debugger", cost: 1e12, baseCost: 1e12, multiplier: 10000, owned: 0 },
+    ];
+
+    const pointsDisplay = document.getElementById("points");
+    const helpersDiv = document.getElementById("helpers");
+    const clickSound = document.getElementById("clickSound");
+    const buySound = document.getElementById("buySound");
+
+    function formatNumber(num) {
+      return num.toLocaleString("en-US", {
+        notation: "compact",
+        compactDisplay: "short",
+        maximumFractionDigits: 2
+      });
+    }
+
+    function updateUI() {
+      pointsDisplay.textContent = formatNumber(points);
+      helpersDiv.innerHTML = '';
+      helpers.forEach((helper, index) => {
+        const btn = document.createElement("button");
+        btn.className = "helper-button";
+        btn.innerHTML = `<strong>${helper.name}</strong><br>Multiplier: ${helper.multiplier}x<br>Owned: ${helper.owned}<br>Cost: ${formatNumber(helper.cost)}`;
+        btn.disabled = points < helper.cost;
+        btn.onclick = () => buyHelper(index);
+        helpersDiv.appendChild(btn);
+      });
+    }
+
+    function buyHelper(index) {
+      const helper = helpers[index];
+      if (points >= helper.cost) {
+        points -= helper.cost;
+        helper.owned++;
+        basePointsPerPress += helper.multiplier;
+        helper.cost += helper.baseCost;
+        buySound.play();
+        updateUI();
+      }
+    }
+
+    document.addEventListener("keydown", function(event) {
+      if (event.code === "Space") {
+        points += basePointsPerPress;
+        clickSound.play();
+        updateUI();
+      }
+    });
+
+    function toggleTheme() {
+      const body = document.body;
+      if (body.classList.contains("dark-mode")) {
+        body.classList.remove("dark-mode");
+        body.classList.add("light-mode");
+      } else {
+        body.classList.remove("light-mode");
+        body.classList.add("dark-mode");
+      }
+    }
+
+    function confirmRestart() {
+      if (confirm("Are you sure you want to restart?")) {
+        points = 0;
+        basePointsPerPress = 1;
+        helpers.forEach(h => {
+          h.owned = 0;
+          h.cost = h.baseCost;
+        });
+        updateUI();
+      }
+    }
+
+    document.getElementById("settings").onclick = () => {
+      const menu = document.getElementById("settingsMenu");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    };
+
+    function closeSettings() {
+      document.getElementById("settingsMenu").style.display = "none";
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
